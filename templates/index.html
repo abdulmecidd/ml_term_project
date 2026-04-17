@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ürün Girişimcilik Danışmanı</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --success: #16a34a;
+            --danger: #dc2626;
+            --bg: #f1f5f9;
+            --card: #ffffff;
+            --text: #1e293b;
+        }
+
+        * { margin:0; padding:0; box-sizing:border-box; font-family: 'Outfit', sans-serif; }
+        body { background: var(--bg); color: var(--text); padding: 20px; display: flex; justify-content: center; min-height: 100vh; }
+        
+        .main-layout { width: 100%; max-width: 1000px; display: grid; grid-template-columns: 380px 1fr; gap: 25px; }
+        @media (max-width: 850px) { .main-layout { grid-template-columns: 1fr; } }
+
+        .card { background: var(--card); padding: 30px; border-radius: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        
+        h1 { font-size: 1.4rem; margin-bottom: 5px; color: var(--primary); }
+        .description { font-size: 0.85rem; color: #64748b; margin-bottom: 25px; line-height: 1.4; }
+
+        .question-group { margin-bottom: 25px; }
+        .question-label { display: block; font-size: 0.95rem; font-weight: 600; margin-bottom: 8px; color: #334155; }
+        
+        select, input[type="range"], input[type="number"] {
+            width: 100%; padding: 12px; border-radius: 12px; border: 1.5px solid #e2e8f0; background: #f8fafc; font-size: 0.95rem;
+        }
+
+        .range-info { display: flex; justify-content: space-between; font-size: 0.8rem; margin-top: 5px; font-weight: 600; color: var(--primary); }
+
+        /* Result Section */
+        .result-sticky { position: sticky; top: 20px; display: flex; flex-direction: column; gap: 20px; }
+        
+        .result-box { text-align: center; padding: 25px; border-radius: 15px; background: #f8fafc; border: 2px solid #e2e8f0; transition: all 0.3s; }
+        .res-status { font-size: 2.2rem; font-weight: 800; margin-bottom: 5px; }
+        
+        .advice-box { background: #eff6ff; border: 1px solid #dbeafe; padding: 25px; border-radius: 15px; }
+        .advice-item { margin-bottom: 12px; font-size: 0.9rem; }
+        .advice-item strong { color: #1e40af; display: block; margin-bottom: 3px; }
+
+        .how-box { font-size: 0.75rem; background: #fffbeb; border: 1px solid #fef3c7; padding: 10px; border-radius: 10px; color: #92400e; }
+
+        .status-ok { color: var(--success); border-color: var(--success); }
+        .status-low { color: var(--danger); border-color: var(--danger); }
+    </style>
+</head>
+<body>
+
+<div class="main-layout">
+    <div class="card">
+        <h1>Ürün Lansman Soruları</h1>
+        <p class="description">Soruları cevaplayın, modelimizin satış stratejinizi anlık olarak nasıl değiştirdiğini sağ taraftan izleyin.</p>
+
+        <div class="question-group">
+            <label class="question-label">1. Hangi alanda satış yapacaksınız?</label>
+            <select id="category" onchange="predict()">
+                <option value="Electronics">Elektronik</option>
+                <option value="Fashion">Moda</option>
+                <option value="Books">Kitap</option>
+                <option value="Beauty">Kozmetik</option>
+                <option value="Home & Garden">Ev ve Yaşam</option>
+            </select>
+        </div>
+
+        <div class="question-group">
+            <label class="question-label">2. Bir adet ürünün fiyatı ne olacak?</label>
+            <input type="number" id="price" value="150" oninput="predict()">
+            <div class="range-info"><span>Target: 150 ₺</span></div>
+        </div>
+
+        <div class="question-group">
+            <label class="question-label">3. Kimleri hedefliyorsunuz? (Yaş)</label>
+            <input type="range" id="age" min="18" max="75" value="30" oninput="uV('ageVal', this.value); predict()">
+            <div class="range-info"><span>18 Yaş</span> <span id="ageVal">30</span> <span>75 Yaş</span></div>
+        </div>
+
+        <div class="question-group">
+            <label class="question-label">4. Hedef cinsiyetiniz nedir?</label>
+            <select id="gender" onchange="predict()">
+                <option value="Female">Kadın</option>
+                <option value="Male">Erkek</option>
+                <option value="Other">Diğer</option>
+            </select>
+        </div>
+
+        <div class="question-group">
+            <label class="question-label">5. Müşterinin ne kadar süre (dk) harcamasını umuyorsunuz?</label>
+            <input type="range" id="session" min="1" max="60" value="15" oninput="uV('sVal', this.value); predict()">
+            <div class="range-info"><span>1 Dk</span> <span id="sVal">15</span> <span>60 Dk</span></div>
+        </div>
+
+        <div class="question-group" style="margin-bottom: 0;">
+            <label class="question-label">6. Sitede ortalama kaç sayfa gezecekler?</label>
+            <input type="range" id="pages" min="1" max="30" value="5" oninput="uV('pVal', this.value); predict()">
+            <div class="range-info"><span>1 Sayfa</span> <span id="pVal">5</span> <span>30 Sayfa</span></div>
+        </div>
+    </div>
+
+    <div class="result-sticky">
+        <div class="card result-box" id="resCard">
+            <div id="resStatus" class="res-status">---</div>
+            <p id="resConf" style="color: #64748b; font-weight: 600; font-size: 0.9rem;">Analiz Bekleniyor...</p>
+        </div>
+
+        <div class="card advice-box">
+            <h3 style="font-size: 1rem; margin-bottom: 12px; color: #1e40af;">💡 Lansman Önerileri</h3>
+            <div class="advice-item">
+                <strong>Optimal Satış Fiyatı:</strong>
+                <span id="sPrice">Hesaplanıyor...</span>
+            </div>
+            <div class="advice-item">
+                <strong>İdeal Hedef Kitle:</strong>
+                <span id="sAudience">Hesaplanıyor...</span>
+            </div>
+            <p id="sNote" style="font-size: 0.8rem; color: #2563eb; margin-top: 5px;"></p>
+        </div>
+
+        <div class="card" style="padding: 20px;">
+            <p style="font-size: 0.75rem; margin-bottom: 15px; font-weight: 600;">Model Karar Ağırlıkları</p>
+            <canvas id="importanceChart" height="180"></canvas>
+        </div>
+    </div>
+</div>
+
+<script>
+    let myChart = null;
+    function uV(id, v) { document.getElementById(id).innerText = v; }
+
+    async function predict() {
+        const data = {
+            Product_Category: document.getElementById('category').value,
+            Unit_Price: document.getElementById('price').value,
+            Age: document.getElementById('age').value,
+            Gender: document.getElementById('gender').value,
+            Session_Duration_Minutes: document.getElementById('session').value,
+            Pages_Viewed: document.getElementById('pages').value
+        };
+
+        try {
+            const res = await fetch('http://localhost:8000/predict', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            const result = await res.json();
+            if (result.status === 'success') renderUI(result);
+        } catch (e) { console.error(e); }
+    }
+
+    function renderUI(d) {
+        const card = document.getElementById('resCard');
+        const status = document.getElementById('resStatus');
+        
+        status.innerText = d.prediction;
+        card.className = 'card result-box ' + (d.prediction === 'Çok Satan' ? 'status-ok' : 'status-low');
+        document.getElementById('resConf').innerText = 'Tahmin Güven Skoru: %' + d.confidence;
+        
+        document.getElementById('sPrice').innerText = d.strategy.optimal_price;
+        document.getElementById('sAudience').innerText = d.strategy.best_audience;
+        document.getElementById('sNote').innerText = d.strategy.logic_note;
+
+        updateChart(d.feature_importance);
+    }
+
+    function updateChart(imp) {
+        const ctx = document.getElementById('importanceChart').getContext('2d');
+        if (myChart) {
+            myChart.data.labels = Object.keys(imp);
+            myChart.data.datasets[0].data = Object.values(imp);
+            myChart.update();
+        } else {
+            myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(imp),
+                    datasets: [{ label: 'Önem', data: Object.values(imp), backgroundColor: '#6366f1', borderRadius: 6 }]
+                },
+                options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+            });
+        }
+    }
+
+    window.onload = predict;
+</script>
+
+</body>
+</html>
