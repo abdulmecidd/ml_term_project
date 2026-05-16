@@ -1,194 +1,305 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ürün Girişimcilik Danışmanı</title>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <title>EnergyFit | Power Demand Prediction</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
             --primary: #4f46e5;
-            --success: #16a34a;
-            --danger: #dc2626;
-            --bg: #f1f5f9;
+            --primary-hover: #4338ca;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --bg: #f8fafc;
             --card: #ffffff;
-            --text: #1e293b;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
         }
 
-        * { margin:0; padding:0; box-sizing:border-box; font-family: 'Outfit', sans-serif; }
-        body { background: var(--bg); color: var(--text); padding: 20px; display: flex; justify-content: center; min-height: 100vh; }
+        * { margin:0; padding:0; box-sizing:border-box; font-family: 'Inter', sans-serif; }
         
-        .main-layout { width: 100%; max-width: 1000px; display: grid; grid-template-columns: 380px 1fr; gap: 25px; }
-        @media (max-width: 850px) { .main-layout { grid-template-columns: 1fr; } }
+        body { 
+            background-color: var(--bg); 
+            color: var(--text-main); 
+            padding: 40px 20px; 
+            display: flex; 
+            justify-content: center; 
+            min-height: 100vh; 
+        }
+        
+        .main-layout { 
+            width: 100%; 
+            max-width: 1100px; 
+            display: grid; 
+            grid-template-columns: 400px 1fr; 
+            gap: 30px; 
+        }
+        
+        @media (max-width: 900px) { .main-layout { grid-template-columns: 1fr; } }
 
-        .card { background: var(--card); padding: 30px; border-radius: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
-        
-        h1 { font-size: 1.4rem; margin-bottom: 5px; color: var(--primary); }
-        .description { font-size: 0.85rem; color: #64748b; margin-bottom: 25px; line-height: 1.4; }
-
-        .question-group { margin-bottom: 25px; }
-        .question-label { display: block; font-size: 0.95rem; font-weight: 600; margin-bottom: 8px; color: #334155; }
-        
-        select, input[type="range"], input[type="number"] {
-            width: 100%; padding: 12px; border-radius: 12px; border: 1.5px solid #e2e8f0; background: #f8fafc; font-size: 0.95rem;
+        .card { 
+            background: var(--card); 
+            border: 1px solid var(--border);
+            padding: 30px; 
+            border-radius: 16px; 
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); 
         }
 
-        .range-info { display: flex; justify-content: space-between; font-size: 0.8rem; margin-top: 5px; font-weight: 600; color: var(--primary); }
+        h1 { 
+            font-size: 1.5rem; 
+            color: var(--text-main); 
+            font-weight: 700; 
+            letter-spacing: -0.5px;
+            margin-bottom: 8px; 
+        }
 
-        /* Result Section */
-        .result-sticky { position: sticky; top: 20px; display: flex; flex-direction: column; gap: 20px; }
+        .description { font-size: 0.95rem; color: var(--text-muted); margin-bottom: 25px; line-height: 1.5; }
+
+        .scenario-box {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            padding: 16px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            font-size: 0.9rem;
+            color: #1e3a8a;
+            line-height: 1.5;
+        }
+
+        .section-title { 
+            font-size: 0.75rem; 
+            text-transform: uppercase; 
+            letter-spacing: 1px; 
+            color: var(--text-muted); 
+            margin: 20px 0 15px; 
+            font-weight: 700; 
+        }
+
+        .question-group { margin-bottom: 20px; }
+        .question-label { display: block; font-size: 0.9rem; font-weight: 500; margin-bottom: 8px; color: var(--text-main);}
         
-        .result-box { text-align: center; padding: 25px; border-radius: 15px; background: #f8fafc; border: 2px solid #e2e8f0; transition: all 0.3s; }
-        .res-status { font-size: 2.2rem; font-weight: 800; margin-bottom: 5px; }
+        input[type="datetime-local"] {
+            width: 100%; padding: 12px; border-radius: 8px; 
+            border: 1px solid var(--border); 
+            background: #fff; 
+            color: var(--text-main);
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.2s;
+        }
         
-        .advice-box { background: #eff6ff; border: 1px solid #dbeafe; padding: 25px; border-radius: 15px; }
-        .advice-item { margin-bottom: 12px; font-size: 0.9rem; }
-        .advice-item strong { color: #1e40af; display: block; margin-bottom: 3px; }
+        input[type="datetime-local"]:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
 
-        .how-box { font-size: 0.75rem; background: #fffbeb; border: 1px solid #fef3c7; padding: 10px; border-radius: 10px; color: #92400e; }
+        .btn-start {
+            width: 100%; padding: 14px; border-radius: 8px; border: none; 
+            background: var(--primary);
+            color: white; font-weight: 600; font-size: 1rem; 
+            cursor: pointer; margin-top: 10px;
+            transition: all 0.2s;
+        }
+        
+        .btn-start:hover:not(:disabled) { background: var(--primary-hover); }
+        .btn-start:disabled { background: var(--text-muted); cursor: not-allowed; opacity: 0.7; }
 
-        .status-ok { color: var(--success); border-color: var(--success); }
-        .status-low { color: var(--danger); border-color: var(--danger); }
+        .result-sticky { display: flex; flex-direction: column; gap: 20px; }
+        
+        .result-box { 
+            text-align: center; padding: 40px 20px; 
+            display: flex; flex-direction: column; align-items: center;
+            border-top: 4px solid var(--border);
+            transition: all 0.3s;
+        }
+        
+        .res-title { font-size: 1rem; color: var(--text-muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
+        .res-value { font-size: 3.5rem; font-weight: 700; color: var(--text-main); line-height: 1; margin-bottom: 5px; transition: color 0.3s;}
+        .res-unit { font-size: 1rem; font-weight: 500; color: var(--text-muted); }
+        
+        .implication-box {
+            margin-top: 25px;
+            padding: 20px;
+            border-radius: 10px;
+            background: #f8fafc;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            border: 1px solid var(--border);
+            text-align: left;
+            width: 100%;
+            display: none;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 15px;
+            background: #f1f5f9;
+            color: var(--text-muted);
+        }
+
+        .model-info { font-size: 0.8rem; color: var(--text-muted); margin-top: 20px; }
+        .error-msg { color: var(--danger); font-size: 0.85rem; margin-top: 10px; display: none; font-weight: 500; }
+        
     </style>
 </head>
 <body>
 
-<div class="main-layout">
+<div class="main-layout" id="appBody">
     <div class="card">
-        <h1>Ürün Lansman Soruları</h1>
-        <p class="description">Soruları cevaplayın, modelimizin satış stratejinizi anlık olarak nasıl değiştirdiğini sağ taraftan izleyin.</p>
+        <h1>Grid Operator Panel</h1>
+        <p class="description">Machine learning powered hourly energy demand prediction and decision support system.</p>
 
+        <div class="scenario-box">
+            <strong>Objective:</strong> As a grid operator, you must balance energy supply and demand. Select a target date to predict the total energy load and take necessary actions.
+        </div>
+
+        <div class="section-title">Time Selection</div>
+        
         <div class="question-group">
-            <label class="question-label">1. Hangi alanda satış yapacaksınız?</label>
-            <select id="category" onchange="predict()">
-                <option value="Electronics">Elektronik</option>
-                <option value="Fashion">Moda</option>
-                <option value="Books">Kitap</option>
-                <option value="Beauty">Kozmetik</option>
-                <option value="Home & Garden">Ev ve Yaşam</option>
-            </select>
+            <label class="question-label">Target Date and Time:</label>
+            <input type="datetime-local" id="datetime" required>
         </div>
 
-        <div class="question-group">
-            <label class="question-label">2. Bir adet ürünün fiyatı ne olacak?</label>
-            <input type="number" id="price" value="150" oninput="predict()">
-            <div class="range-info"><span>Target: 150 ₺</span></div>
-        </div>
-
-        <div class="question-group">
-            <label class="question-label">3. Kimleri hedefliyorsunuz? (Yaş)</label>
-            <input type="range" id="age" min="18" max="75" value="30" oninput="uV('ageVal', this.value); predict()">
-            <div class="range-info"><span>18 Yaş</span> <span id="ageVal">30</span> <span>75 Yaş</span></div>
-        </div>
-
-        <div class="question-group">
-            <label class="question-label">4. Hedef cinsiyetiniz nedir?</label>
-            <select id="gender" onchange="predict()">
-                <option value="Female">Kadın</option>
-                <option value="Male">Erkek</option>
-                <option value="Other">Diğer</option>
-            </select>
-        </div>
-
-        <div class="question-group">
-            <label class="question-label">5. Müşterinin ne kadar süre (dk) harcamasını umuyorsunuz?</label>
-            <input type="range" id="session" min="1" max="60" value="15" oninput="uV('sVal', this.value); predict()">
-            <div class="range-info"><span>1 Dk</span> <span id="sVal">15</span> <span>60 Dk</span></div>
-        </div>
-
-        <div class="question-group" style="margin-bottom: 0;">
-            <label class="question-label">6. Sitede ortalama kaç sayfa gezecekler?</label>
-            <input type="range" id="pages" min="1" max="30" value="5" oninput="uV('pVal', this.value); predict()">
-            <div class="range-info"><span>1 Sayfa</span> <span id="pVal">5</span> <span>30 Sayfa</span></div>
-        </div>
+        <div id="validationError" class="error-msg">⚠️ Please select a valid date and time.</div>
+        <button class="btn-start" id="startBtn" onclick="runAnalysis()">Analyze</button>
     </div>
 
-    <div class="result-sticky">
+    <div class="result-sticky" id="resultContainer">
         <div class="card result-box" id="resCard">
-            <div id="resStatus" class="res-status">---</div>
-            <p id="resConf" style="color: #64748b; font-weight: 600; font-size: 0.9rem;">Analiz Bekleniyor...</p>
+            <div class="status-badge" id="statusBadge">Awaiting Input</div>
+            <div class="res-title">Estimated Total Load</div>
+            <div class="res-value" id="resValue">0</div>
+            <div class="res-unit" id="resUnit">MWh</div>
+            
+            <div class="implication-box" id="implicationBox">
+                System analysis will be displayed here once a time is selected.
+            </div>
+
+            <div class="model-info" id="modelInfo">Waiting for model...</div>
         </div>
 
-        <div class="card advice-box">
-            <h3 style="font-size: 1rem; margin-bottom: 12px; color: #1e40af;">💡 Lansman Önerileri</h3>
-            <div class="advice-item">
-                <strong>Optimal Satış Fiyatı:</strong>
-                <span id="sPrice">Hesaplanıyor...</span>
-            </div>
-            <div class="advice-item">
-                <strong>İdeal Hedef Kitle:</strong>
-                <span id="sAudience">Hesaplanıyor...</span>
-            </div>
-            <p id="sNote" style="font-size: 0.8rem; color: #2563eb; margin-top: 5px;"></p>
-        </div>
-
-        <div class="card" style="padding: 20px;">
-            <p style="font-size: 0.75rem; margin-bottom: 15px; font-weight: 600;">Model Karar Ağırlıkları</p>
-            <canvas id="importanceChart" height="180"></canvas>
+        <div class="card" style="padding: 25px;">
+            <p style="font-size: 0.85rem; margin-bottom: 20px; color: var(--text-muted); font-weight: 600;">Factors Influencing the Prediction</p>
+            <canvas id="importanceChart" height="220"></canvas>
         </div>
     </div>
 </div>
 
 <script>
     let myChart = null;
-    function uV(id, v) { document.getElementById(id).innerText = v; }
 
-    async function predict() {
-        const data = {
-            Product_Category: document.getElementById('category').value,
-            Unit_Price: document.getElementById('price').value,
-            Age: document.getElementById('age').value,
-            Gender: document.getElementById('gender').value,
-            Session_Duration_Minutes: document.getElementById('session').value,
-            Pages_Viewed: document.getElementById('pages').value
-        };
+    window.onload = function() {
+        const now = new Date();
+        now.setMinutes(0, 0, 0);
+        const offset = now.getTimezoneOffset() * 60000;
+        const localISOTime = (new Date(now - offset)).toISOString().slice(0,16);
+        document.getElementById('datetime').value = localISOTime;
+        initEmptyChart();
+    }
+
+    function initEmptyChart() {
+        const ctx = document.getElementById('importanceChart').getContext('2d');
+        Chart.defaults.font.family = "'Inter', sans-serif";
+        myChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Month', 'Day', 'Day of Week', 'Weekend', 'Hour'],
+                datasets: [{ data: [0,0,0,0,0], backgroundColor: '#e2e8f0', borderRadius: 4 }]
+            },
+            options: { 
+                indexAxis: 'y', 
+                responsive: true, 
+                plugins: { legend: { display: false } },
+                scales: { 
+                    x: { beginAtZero: true },
+                    y: { grid: { display: false } }
+                }
+            }
+        });
+    }
+
+    async function runAnalysis() {
+        const dtVal = document.getElementById('datetime').value;
+        if (!dtVal) {
+            document.getElementById('validationError').style.display = 'block';
+            return;
+        }
+        
+        document.getElementById('validationError').style.display = 'none';
+        const btn = document.getElementById('startBtn');
+        btn.innerText = "Processing...";
+        btn.disabled = true;
 
         try {
             const res = await fetch('http://localhost:8000/predict', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
+                body: JSON.stringify({ datetime: dtVal })
             });
             const result = await res.json();
-            if (result.status === 'success') renderUI(result);
-        } catch (e) { console.error(e); }
-    }
-
-    function renderUI(d) {
-        const card = document.getElementById('resCard');
-        const status = document.getElementById('resStatus');
-        
-        status.innerText = d.prediction;
-        card.className = 'card result-box ' + (d.prediction === 'Çok Satan' ? 'status-ok' : 'status-low');
-        document.getElementById('resConf').innerText = 'Tahmin Güven Skoru: %' + d.confidence;
-        
-        document.getElementById('sPrice').innerText = d.strategy.optimal_price;
-        document.getElementById('sAudience').innerText = d.strategy.best_audience;
-        document.getElementById('sNote').innerText = d.strategy.logic_note;
-
-        updateChart(d.feature_importance);
-    }
-
-    function updateChart(imp) {
-        const ctx = document.getElementById('importanceChart').getContext('2d');
-        if (myChart) {
-            myChart.data.labels = Object.keys(imp);
-            myChart.data.datasets[0].data = Object.values(imp);
-            myChart.update();
-        } else {
-            myChart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: Object.keys(imp),
-                    datasets: [{ label: 'Önem', data: Object.values(imp), backgroundColor: '#6366f1', borderRadius: 6 }]
-                },
-                options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
-            });
+            
+            if (result.status === 'success') {
+                renderUI(result);
+            } else {
+                alert("Error: " + result.error);
+            }
+        } catch (e) {
+            console.error(e);
+            alert("Could not connect to server. Is Flask running?");
+        } finally {
+            btn.innerText = "Re-analyze";
+            btn.disabled = false;
         }
     }
 
-    window.onload = predict;
+    function renderUI(d) {
+        document.getElementById('resValue').innerText = d.prediction.toLocaleString('en-US');
+        document.getElementById('resUnit').innerText = d.prediction_unit;
+        
+        const badge = document.getElementById('statusBadge');
+        const resCard = document.getElementById('resCard');
+        const implBox = document.getElementById('implicationBox');
+        
+        badge.innerText = d.status_level;
+        badge.style.color = d.status_color;
+        badge.style.background = d.status_color + "15"; // Very light opacity
+
+        resCard.style.borderTopColor = d.status_color;
+        document.getElementById('resValue').style.color = d.status_color;
+
+        implBox.innerText = d.implication;
+        implBox.style.display = 'block';
+        implBox.style.borderLeft = `4px solid ${d.status_color}`;
+
+        document.getElementById('modelInfo').innerText = "Active Model: " + d.active_model;
+        
+        updateChart(d.feature_importance, d.status_color);
+    }
+
+    function updateChart(imp, color) {
+        if (!imp || Object.keys(imp).length === 0) return;
+        
+        const labels = Object.keys(imp).map(l => {
+            const map = { 'Month': 'Month', 'Day': 'Day', 'DayOfWeek': 'Day of Week', 'Is_Weekend': 'Weekend', 'Hour': 'Hour' };
+            return map[l] || l;
+        });
+        const values = Object.values(imp);
+        
+        myChart.data.labels = labels;
+        myChart.data.datasets[0].data = values;
+        myChart.data.datasets[0].backgroundColor = color;
+        myChart.update();
+    }
 </script>
 
 </body>
